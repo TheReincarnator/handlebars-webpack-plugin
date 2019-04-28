@@ -156,7 +156,7 @@ class HandlebarsPlugin {
      * @return {String} filecontents
      */
     readFile(filepath) {
-        this.addDependency(filepath);
+        this.fileDependencies.push(filepath);
         return fs.readFileSync(filepath, "utf-8");
     }
 
@@ -165,11 +165,7 @@ class HandlebarsPlugin {
      * @param {...[String]} args    - list of filepaths
      */
     addDependency(...args) {
-        if (!args) return;
-        args.forEach(filename => {
-            if (filename && !this.fileDependencies.includes(filename))
-                this.fileDependencies.push(filename);
-        });
+        this.fileDependencies.push.apply(this.fileDependencies, args.filter((filename) => filename));
     }
 
     /**
@@ -198,7 +194,7 @@ class HandlebarsPlugin {
      */
     containsOwnDependency(list) {
         for (let i = 0; i < list.length; i += 1) {
-            if (this.fileDependencies.includes(list[i].replace(/\\/g, '/'))) {
+            if (this.fileDependencies.includes(list[i])) {
                 return true;
             }
         }
@@ -295,7 +291,7 @@ class HandlebarsPlugin {
         let result = template(data);
         result = this.options.onBeforeSave(Handlebars, result, targetFilepath) || result;
 
-        if (targetFilepath.includes(outputPath.replace(/\\/g, '/'))) {
+        if (targetFilepath.includes(outputPath)) {
             // change the destination path relative to webpacks output folder and emit it via webpack
             targetFilepath = targetFilepath.replace(outputPath, "").replace(/^\/*/, "");
             this.assetsToEmit[targetFilepath] = {

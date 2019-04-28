@@ -34,6 +34,7 @@ class HandlebarsPlugin {
             entry: null,
             output: null,
             data: {},
+            getTargetFilepath,
             helpers: {},
             htmlWebpackPlugin: null,
             onBeforeSetup: Function.prototype,
@@ -45,7 +46,8 @@ class HandlebarsPlugin {
         }, options);
 
         // setup htmlWebpackPlugin default options and merge user configuration
-        this.options.htmlWebpackPlugin = Object.assign({ enabled: false, prefix: "html" }, options.htmlWebpackPlugin.toString() === "true" ? {enabled: true} : options.htmlWebpackPlugin);
+        this.options.htmlWebpackPlugin = Object.assign({ enabled: false, prefix: "html" },
+            options.htmlWebpackPlugin && options.htmlWebpackPlugin.toString() === "true" ? {enabled: true} : options.htmlWebpackPlugin);
 
         this.firstCompilation = true;
         this.options.onBeforeSetup(Handlebars);
@@ -154,7 +156,7 @@ class HandlebarsPlugin {
      * @return {String} filecontents
      */
     readFile(filepath) {
-        this.fileDependencies.push(filepath);
+        this.addDependency(filepath);
         return fs.readFileSync(filepath, "utf-8");
     }
 
@@ -163,7 +165,11 @@ class HandlebarsPlugin {
      * @param {...[String]} args    - list of filepaths
      */
     addDependency(...args) {
-        this.fileDependencies.push.apply(this.fileDependencies, args.filter((filename) => filename));
+        if (!args) return;
+        args.forEach(filename => {
+            if (filename && !this.fileDependencies.includes(filename))
+                this.fileDependencies.push(filename);
+        });
     }
 
     /**
@@ -192,7 +198,7 @@ class HandlebarsPlugin {
      */
     containsOwnDependency(list) {
         for (let i = 0; i < list.length; i += 1) {
-            if (this.fileDependencies.includes(list[i])) {
+            if (this.fileDependencies.includes(list[i].replace(/\\/g, '/'))) {
                 return true;
             }
         }
@@ -278,7 +284,7 @@ class HandlebarsPlugin {
      * @param  {String} outputPath  - webpack output path for build results
      */
     compileEntryFile(sourcePath, outputPath) {
-        let targetFilepath = getTargetFilepath(sourcePath, this.options.output);
+        let targetFilepath = this.options.getTargetFilepath(sourcePath, this.options.output);
         // fetch template content
         let templateContent = this.readFile(sourcePath, "utf-8");
         templateContent = this.options.onBeforeCompile(Handlebars, templateContent) || templateContent;
@@ -289,7 +295,7 @@ class HandlebarsPlugin {
         let result = template(data);
         result = this.options.onBeforeSave(Handlebars, result, targetFilepath) || result;
 
-        if (targetFilepath.includes(outputPath)) {
+        if (targetFilepath.includes(outputPath.replace(/\\/g, '/'))) {
             // change the destination path relative to webpacks output folder and emit it via webpack
             targetFilepath = targetFilepath.replace(outputPath, "").replace(/^\/*/, "");
             this.assetsToEmit[targetFilepath] = {

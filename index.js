@@ -194,7 +194,7 @@ class HandlebarsPlugin {
      */
     containsOwnDependency(list) {
         for (let i = 0; i < list.length; i += 1) {
-            if (this.fileDependencies.includes(list[i])) {
+            if (this.fileDependencies.includes(list[i].replace(/\\/g, '/'))) {
                 return true;
             }
         }
@@ -291,7 +291,7 @@ class HandlebarsPlugin {
         let result = template(data);
         result = this.options.onBeforeSave(Handlebars, result, targetFilepath) || result;
 
-        if (targetFilepath.includes(outputPath)) {
+        if (targetFilepath.includes(outputPath.replace(/\\/g, '/'))) {
             // change the destination path relative to webpacks output folder and emit it via webpack
             targetFilepath = targetFilepath.replace(outputPath, "").replace(/^\/*/, "");
             this.assetsToEmit[targetFilepath] = {

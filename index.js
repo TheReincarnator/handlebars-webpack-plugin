@@ -34,6 +34,7 @@ class HandlebarsPlugin {
             entry: null,
             output: null,
             data: {},
+            getPartialId: partialUtils.getDefaultId,
             getTargetFilepath,
             helpers: {},
             htmlWebpackPlugin: null,
@@ -70,7 +71,7 @@ class HandlebarsPlugin {
      */
     loadPartials() {
         // register partials
-        const partials = partialUtils.resolve(Handlebars, this.options.partials);
+        const partials = partialUtils.resolve(Handlebars, this.options.partials, this.options.getPartialId);
         this.options.onBeforeAddPartials(Handlebars, partials);
         partialUtils.addMap(Handlebars, partials);
         // watch all partials for changes

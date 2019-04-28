@@ -313,7 +313,7 @@ class HandlebarsPlugin {
 
             if (targetFilepath.includes(compilation.compiler.outputPath.replace(/\\/g, '/'))) {
                 // change the destination path relative to webpacks output folder and emit it via webpack
-                targetFilepath = targetFilepath.replace(compilation.compiler.outputPath, "").replace(/^\/*/, "");
+                targetFilepath = targetFilepath.replace(compilation.compiler.outputPath.replace(/\\/g, '/'), "").replace(/^\/*/, "");
                 this.assetsToEmit[targetFilepath] = {
                     source: () => result,
                     size: () => result.length

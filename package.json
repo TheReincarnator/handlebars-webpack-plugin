@@ -1,6 +1,6 @@
 {
   "name": "handlebars-webpack-plugin-thereincarnator",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "description": "Renders your html-template on build time",
   "main": "index.js",
   "scripts": {
